@@ -3,9 +3,15 @@ import openai
 import streamlit as st
 import pandas as pd
 import gspread
-from oauth2client.service_account import ServiceAccountCredentials
 import matplotlib.pyplot as plt
 import requests
+import streamlit as st
+from google.oauth2 import service_account
+
+# Load credentials from Streamlit Secrets
+credentials = service_account.Credentials.from_service_account_info(
+    st.secrets["gcp_service_account"]
+)
 
 # Function to make a direct API call to SerpAPI
 def search_google(query):
@@ -22,8 +28,9 @@ def search_google(query):
         return {"error": str(e)}
 
 # Load OpenAI and SerpAPI keys from environment variables
-openai.api_key = os.getenv("OPENAI_API_KEY")
-SERPAPI_KEY = os.getenv("SERPAPI_KEY")
+openai.api_key = st.secrets["OPENAI_API_KEY"]
+SERPAPI_KEY = st.secrets["SERPAPI_KEY"]
+
 
 # Check if the keys are loaded successfully
 if not openai.api_key:
@@ -43,13 +50,13 @@ uploaded_file = st.file_uploader("Choose a CSV file", type="csv")
 st.subheader("Connect to Google Sheets")
 sheet_url = st.text_input("Enter Google Sheets URL (must be a public URL)")
 
-# Google Sheets authentication
-scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/drive.file"]
 try:
-    creds = ServiceAccountCredentials.from_json_keyfile_name("credentials.json", scope)
+    creds = service_account.Credentials.from_service_account_info(
+        st.secrets["gcp_service_account"]
+    )
     client = gspread.authorize(creds)
-except FileNotFoundError:
-    st.error("credentials.json not found. Make sure it is in the project directory.")
+except Exception as e:
+    st.error("Error loading Google Service Account credentials. Please check your Streamlit secrets.")
 
 data = None
 
