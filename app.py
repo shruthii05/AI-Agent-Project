@@ -2,15 +2,8 @@ import os
 import openai
 import streamlit as st
 import pandas as pd
-import gspread
 import matplotlib.pyplot as plt
 import requests
-from google.oauth2 import service_account
-
-# Load credentials from Streamlit Secrets
-credentials = service_account.Credentials.from_service_account_info(
-    st.secrets["gcp_service_account"]
-)
 
 # Function to make a direct API call to SerpAPI
 def search_google(query):
@@ -30,20 +23,13 @@ def search_google(query):
 openai.api_key = st.secrets["openai"]["api_key"]
 SERPAPI_KEY = st.secrets["serpapi"]["api_key"]
 
-try:
-    creds = service_account.Credentials.from_service_account_info(
-        st.secrets["gcp_service_account"]
-    )
-    client = gspread.authorize(creds)
-except Exception as e:
-    st.error("Error loading Google Service Account credentials. Please check your Streamlit secrets.")
-    st.stop()
-
 # App title and header
 st.markdown(
     """
-    <h1 style="text-align: center; color: green; font-size: 3em;">AI Agent Dashboard</h1>
-    <p style="text-align: center; font-size: 1.2em;">Simplifying Data Search and Analysis with AI</p>
+    <div style="text-align: center; margin-top: -30px; margin-bottom: 20px;">
+        <h1 style="font-size: 2.5em; color: #2C6E91;">🚀 AI Agent Dashboard</h1>
+        <p style="font-size: 1.2em; color: #555;">Simplifying Data Search and Analysis with AI</p>
+    </div>
     """,
     unsafe_allow_html=True,
 )
@@ -62,33 +48,17 @@ st.sidebar.markdown(
 )
 
 # File Upload Section
-# Google Sheets Section
-st.subheader("Connect to Google Sheets")
-sheet_url = st.text_input("Enter Google Sheets URL (must be public)")
-
-# Display debugging information about the service account and sheet URL
-st.write(f"Using service account: {st.secrets['gcp_service_account']['client_email']}")
-st.write(f"Connecting to Google Sheet: {sheet_url}")
-
-try:
-    creds = service_account.Credentials.from_service_account_info(
-        st.secrets["gcp_service_account"]
-    )
-    client = gspread.authorize(creds)
-except Exception as e:
-    st.error("Error loading Google Service Account credentials. Please check your Streamlit secrets.")
+st.subheader("📂 Upload Your Data")
+uploaded_file = st.file_uploader("Upload a CSV file for processing.", type="csv")
 
 data = None
-if sheet_url:
-    # Load data from Google Sheets
-    try:
-        sheet = client.open_by_url(sheet_url).sheet1
-        records = sheet.get_all_records(expected_headers=True)
-        data = pd.DataFrame(records)
-        st.write("Preview of Google Sheet Data:")
-        st.write(data.head())
-    except Exception as e:
-        st.error("Error connecting to Google Sheets. Please check the URL or credentials.")
+if uploaded_file:
+    # Load CSV file
+    data = pd.read_csv(uploaded_file)
+    st.write("Preview of Uploaded CSV File:")
+    st.write(data.head())
+else:
+    st.warning("Please upload a CSV file to proceed.")
 
 # Processing Options
 if data is not None:
@@ -142,10 +112,11 @@ st.markdown(
     """
     <div style="text-align: center; margin-top: 50px; font-size: 0.9em; color: #888;">
         Developed by Shruthi. Powered by <span style="color: #007bff;">OpenAI</span>, 
-        <span style="color: #FF4500;">SerpAPI</span>, and <span style="color: #34a853;">Google Cloud</span>.
+        <span style="color: #FF4500;">SerpAPI</span>.
     </div>
     """,
     unsafe_allow_html=True,
 )
+
 
 
