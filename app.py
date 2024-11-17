@@ -155,7 +155,7 @@ if data is not None:
                     results[entity] = f"Error: {e}"
 
         # Display only the response for the queried entity
-           user_input = st.text_input("Ask about an entity (e.g., 'Chile'):", value="")
+          user_input = st.text_input("Ask about an entity (e.g., 'Chile'):", value="")
           if user_input:
              response = results.get(user_input, "No relevant results found for the given query.")
              st.markdown(f"**User:** {user_input}\n\n**AI:** {response}", unsafe_allow_html=True)
