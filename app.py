@@ -149,8 +149,8 @@ if data is not None:
                                st.write(f"Debug: Skipping duplicate response for {entity}")
                         else:
                            results[entity] = "No relevant results found"
-                except Exception as e:
-                     results[entity] = f"Error: {e}"
+                    except Exception as e:
+                      summary = f"Error: {e}"
             for entity, response in results.items():
                 st.markdown(
                    f"""
