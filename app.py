@@ -121,14 +121,13 @@ if process_option == "Summarize Data":
     st.write(data[primary_column].describe())
 
 # Conditional for retrieving web data
-elif process_option == "Retrieve Web Data":
+if process_option == "Retrieve Web Data":
     search_query = st.text_input("Enter search query (use {entity} for entity placeholder)", value="What is {entity}")
     if st.button("Start Web Search"):
         st.subheader("🔍 Web Search Results")
         unique_entities = data[primary_column].drop_duplicates().tolist()  # Ensure unique queries only
         results = []
-        
-        # Loop through unique entities and perform a search
+
         for entity in unique_entities:
             query = search_query.replace("{entity}", str(entity))
             try:
@@ -139,46 +138,32 @@ elif process_option == "Retrieve Web Data":
                     summary = "No relevant results found"
             except Exception as e:
                 summary = f"Error: {e}"
-            
+
             # Append only unique query-response pairs
             if not any(res["Query"] == query for res in results):
                 results.append({"Query": query, "Response": summary})
-        
-        # Display results
+
+        # Display results in a ChatGPT-style format
         for result in results:
             st.markdown(
                 f"""
                 <div style="background-color: #f9f9f9; padding: 10px; border-radius: 8px; margin-bottom: 10px;">
-                    <p><strong>Query:</strong> {result["Query"]}</p>
-                    <p><strong>Response:</strong> {result["Response"]}</p>
+                    <strong>Query:</strong> {result["Query"]}<br>
+                    <strong>Response:</strong> {result["Response"]}
                 </div>
                 """,
                 unsafe_allow_html=True,
             )
-        
-        # Add a download button for results
-        if results:
-            results_df = pd.DataFrame(results)
-            st.download_button(
-                label="Download Results as CSV",
-                data=results_df.to_csv(index=False),
-                file_name="web_search_results.csv",
-                mime="text/csv",
-            )
 
-        # Display 
-results in a ChatGPT-style format
-        if results:
-            for result in results:
-                st.markdown(
-                    f"""
-                    <div style="background-color: #f9f9f9; padding: 10px; border-radius: 8px; margin-bottom: 10px;">
-                        <p><strong>Query:</strong> {result["Query"]}</p>
-                        <p><strong>Response:</strong> {result["Response"]}</p>
-                    </div>
-                    """,
-                    unsafe_allow_html=True,
-                )
+        # Download results as a CSV
+        results_df = pd.DataFrame(results)
+        st.download_button(
+            label="Download Results as CSV",
+            data=results_df.to_csv(index=False),
+            file_name="web_search_results.csv",
+            mime="text/csv",
+        )
+
 # Data Visualization Section
     st.markdown(
         """
