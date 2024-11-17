@@ -95,7 +95,7 @@ if uploaded_file:
     )
     st.markdown(
         """
-        <h3 style="color: #34a853; margin-top: 20px;">Preview of Uploaded CSV File:</h3>
+        <h3 style="color: #000000; margin-top: 20px;">Preview of Uploaded CSV File:</h3>
         """,
         unsafe_allow_html=True,
     )
