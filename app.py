@@ -109,6 +109,7 @@ if data is not None:
         unsafe_allow_html=True,
     )
     # Dropdown to choose processing type
+    primary_column = st.selectbox("Select the primary column for web data retrieval:", options=data.columns)
     process_option = st.selectbox("Choose processing type:", ["None", "Summarize Data", "Retrieve Web Data"])
 
     # Handle Summarize Data
