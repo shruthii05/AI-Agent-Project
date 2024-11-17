@@ -32,8 +32,62 @@ Follow these steps to set up and run the project on your local machine:
 ```bash
 git clone https://github.com/shruthii05/AI-Agent-Project.git
 cd AI-Agent-Project
+ ```
+
 
 ### **2. Set Up a Virtual Environment**
 ```bash
 python3 -m venv env
-source env/bin/activate 
+source env/bin/activate  # On Windows, use `env\Scripts\activate`
+```
+
+### **3. Install Dependencies**
+```bash
+pip install -r requirements.txt
+```
+
+### **4. Set Up API Keys**
+Add your OpenAI and SerpAPI API keys to your Streamlit secrets:
+```bash
+[openai]
+api_key = "your_openai_api_key"
+
+[serpapi]
+api_key = "your_serpapi_api_key"
+```
+### **5. Run the Application**
+```bash
+streamlit run app.py
+```
+
+## **Usage**
+
+### **Uploading a CSV File**
+- Drag and drop a CSV file into the "Upload Your Data" section.
+- Preview your data and select a column to process.
+
+### **Performing Web Searches**
+- Choose **"Retrieve Web Data"** in the processing options.
+- Enter a query template (e.g., **"What is {entity}?"**).
+- Click **Start Web Search** to fetch search results.
+
+### **Visualizing Data**
+- Select a chart type (**Bar, Line, or Pie Chart**).
+- View interactive visualizations of your dataset.
+
+### **Downloading Results**
+- After web searches, click **Download Results as CSV** to export the processed data.
+
+## **Screenshots**
+
+### **Homepage**
+<img width="1674" alt="image" src="https://github.com/user-attachments/assets/48cbc76b-9d19-4fc0-9090-cf29868cda87">
+
+### **Web Search Results**
+<img width="1674" alt="image" src="https://github.com/user-attachments/assets/f77d3add-c275-44d2-acf0-4fd85d14b16d">
+
+### **Data Visualization**
+<img width="1674" alt="image" src="https://github.com/user-attachments/assets/d7afdf3d-17af-41ef-9cfc-2be677a048e9">
+
+## **Contributing**
+We welcome contributions to enhance this project! 
