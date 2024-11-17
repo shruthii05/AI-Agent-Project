@@ -118,17 +118,17 @@ elif process_option == "Retrieve Web Data":
             except Exception as e:
                 results.append({"Entity": entity, "Query": query, "Result": f"Error: {e}"})
         
-          # Display results in a DataFrame
-         if not results_df.empty:
-            st.write("Search Results:")
-            st.dataframe(results_df, use_container_width=True)
+ # Display results in a DataFrame
+        if not results_df.empty:
+           st.write("Search Results:")
+           st.dataframe(results_df, use_container_width=True)
 
     # Add a download button for the results
-            st.download_button(
-               label="Download Results as CSV",
-               data=results_df.to_csv(index=False),
-               file_name="search_results.csv",
-               mime="text/csv",
+           st.download_button(
+              label="Download Results as CSV",
+              data=results_df.to_csv(index=False),
+              file_name="search_results.csv",
+              mime="text/csv",
            )
         
         # Add a download button for the results
