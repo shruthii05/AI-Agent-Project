@@ -115,52 +115,40 @@ if data is not None:
     if process_option == "Summarize Data":
         st.markdown(f"<h3>Summary of {primary_column}:</h3>", unsafe_allow_html=True)
         st.write(data[primary_column].describe())
-    elif process_option == "Retrieve Web Data":
-        search_query = st.text_input("Enter search query (use {entity} for entity placeholder):", value="What is {entity}")
-        if st.button("Start Web Search"):
-            st.markdown(
-                """
-                <h2 class="section-header">🔍 Web Search Results</h2>
-                """,
-                unsafe_allow_html=True,
-            )
-            unique_entities = data[primary_column].drop_duplicates().tolist()  # Ensure unique queries only
-            results = {}
+if process_option == "Retrieve Web Data":
+    search_query = st.text_input("Enter search query (use {entity} for entity placeholder)", value="What is {entity}")
+    if st.button("Start Web Search"):
+        st.subheader("🔍 Web Search Results")
+        unique_entities = data[primary_column].drop_duplicates().tolist()  # Ensure unique queries only
+        results = []
 
-            for entity in unique_entities:
-                if entity not in results:  # Avoid duplicate processing
-                    query = search_query.replace("{entity}", str(entity))
-                    try:
-                        result = search_google(query)
-                        if "organic_results" in result and len(result["organic_results"]) > 0:
-                            summary = result["organic_results"][0].get("snippet", "No result found")
-                        else:
-                            summary = "No relevant results found"
-                        results[entity] = summary
-                    except Exception as e:
-                        results[entity] = f"Error: {e}"
+        for entity in unique_entities:
+            query = search_query.replace("{entity}", str(entity))
+            try:
+                result = search_google(query)
+                if "organic_results" in result and len(result["organic_results"]) > 0:
+                    summary = result["organic_results"][0].get("snippet", "No result found")
+                else:
+                    summary = "No relevant results found"
+            except Exception as e:
+                summary = f"Error: {e}"
 
-            # Display results in a styled card format
-            for entity, response in results.items():
+            # Append only unique query-response pairs
+            if not any(res["Query"] == query for res in results):
+                results.append({"Query": query, "Response": summary})
+
+        # Display results in a ChatGPT-style format
+        if results:
+            for result in results:
                 st.markdown(
                     f"""
-                    <div class="card">
-                        <p><strong>Query:</strong> What is {entity}</p>
-                        <p><strong>Response:</strong> {response}</p>
+                    <div style="background-color: #f9f9f9; padding: 10px; border-radius: 8px; margin-bottom: 10px;">
+                        <p><strong>Query:</strong> {result["Query"]}</p>
+                        <p><strong>Response:</strong> {result["Response"]}</p>
                     </div>
                     """,
                     unsafe_allow_html=True,
                 )
-
-            # Download Results as CSV
-            results_df = pd.DataFrame(list(results.items()), columns=["Entity", "Response"])
-            st.download_button(
-                label="📥 Download Results as CSV",
-                data=results_df.to_csv(index=False),
-                file_name="search_results.csv",
-                mime="text/csv",
-            )
-
 # Data Visualization Section
     st.markdown(
         """
