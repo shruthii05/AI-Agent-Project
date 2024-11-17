@@ -1,4 +1,4 @@
-import os
+kimport os
 import openai
 import streamlit as st
 import pandas as pd
@@ -52,6 +52,24 @@ st.markdown(
     """,
     unsafe_allow_html=True,
 )
+
+# Function to make a direct API call to SerpAPI
+def search_google(query):
+    """Fetches web results from SerpAPI."""
+    params = {
+        "q": query,
+        "hl": "en",
+        "api_key": st.secrets["serpapi"]["api_key"],
+    }
+    try:
+        response = requests.get("https://serpapi.com/search", params=params)
+        response.raise_for_status()
+        return response.json()
+    except requests.exceptions.RequestException as e:
+        return {"error": str(e)}
+
+# Load OpenAI and SerpAPI keys from Streamlit secrets
+openai.api_key = st.secrets["openai"]["api_key"]
 
 # App title
 st.title("🤖 AI Agent Dashboard")
