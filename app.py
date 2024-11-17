@@ -58,7 +58,10 @@ if data is not None:
         search_query = st.text_input("Enter search query (use {entity} for entity placeholder)", value="What is {entity}")
         if st.button("Start Web Search"):
             st.subheader("🔍 Web Search Results")
-            for entity in data[primary_column].unique():
+            unique_entities = data[primary_column].drop_duplicates().tolist()  # Ensure unique queries only
+            results = []
+
+            for entity in unique_entities:
                 query = search_query.replace("{entity}", str(entity))
                 try:
                     result = search_google(query)
@@ -69,12 +72,15 @@ if data is not None:
                 except Exception as e:
                     summary = f"Error: {e}"
 
-                # Display the result as a conversational-style output
+                results.append({"Query": query, "Response": summary})
+
+            # Display results in ChatGPT-style format
+            for result in results:
                 st.markdown(
                     f"""
                     <div style="background-color: #f9f9f9; padding: 10px; border-radius: 8px; margin-bottom: 10px;">
-                        <p><strong>Query:</strong> {query}</p>
-                        <p><strong>Response:</strong> {summary}</p>
+                        <p><strong>Query:</strong> {result["Query"]}</p>
+                        <p><strong>Response:</strong> {result["Response"]}</p>
                     </div>
                     """,
                     unsafe_allow_html=True,
@@ -102,5 +108,4 @@ st.markdown(
     """,
     unsafe_allow_html=True,
 )
-
 
