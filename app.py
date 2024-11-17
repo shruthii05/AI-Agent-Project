@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import requests
 
 # Set page layout to wide and define page title
-st.set_page_config(page_title="AI Agent Dashboard", layout="wide")
+st.set_page_config(page_title="QueryScope AI", layout="wide")
 
 # Load OpenAI and SerpAPI keys from Streamlit secrets
 openai.api_key = st.secrets["openai"]["api_key"]
@@ -128,18 +128,17 @@ if data is not None:
             results = {}
 
             for entity in unique_entities:
-                query = search_query.replace("{entity}", str(entity))
                 if entity not in results:  # Avoid duplicate processing
+                    query = search_query.replace("{entity}", str(entity))
                     try:
                         result = search_google(query)
                         if "organic_results" in result and len(result["organic_results"]) > 0:
                             summary = result["organic_results"][0].get("snippet", "No result found")
                         else:
                             summary = "No relevant results found"
+                        results[entity] = summary
                     except Exception as e:
-                        summary = f"Error: {e}"
-
-                    results[entity] = summary
+                        results[entity] = f"Error: {e}"
 
             # Display results in a styled card format
             for entity, response in results.items():
