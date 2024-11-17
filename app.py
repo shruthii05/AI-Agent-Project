@@ -131,7 +131,7 @@ if data is not None:
    
     # Button to start the web search
         if st.button("Start Web Search"):
-           st.markdown(
+           st.markdown("## 🔍 Web Search Results")
            unique_entities = data[primary_column].drop_duplicates().tolist()
 
         # Dictionary to store responses
