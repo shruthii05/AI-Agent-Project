@@ -145,10 +145,10 @@ if data is not None:
                             summary = f"{summary}\n\n[Read more here]({link})"
                             if summary not in results.values():
                                results[entity] = summary
+                            else:
+                               st.write(f"Debug: Skipping duplicate response for {entity}")
                         else:
-                           st.write(f"Debug: Skipping duplicate response for {entity}")
-                     else:
-                        results[entity] = "No relevant results found"
+                           results[entity] = "No relevant results found"
                 except Exception as e:
                      results[entity] = f"Error: {e}"
             for entity, response in results.items():
