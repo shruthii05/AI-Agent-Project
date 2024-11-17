@@ -120,55 +120,45 @@ if data is not None:
 
     # Handle Retrieve Web Data
     elif process_option == "Retrieve Web Data":
-        # Dropdown to select the primary column for web data retrieval
-        primary_column = st.selectbox("Select the primary column for web data retrieval:", options=data.columns)
-        search_query = st.text_input("Enter search query (use {entity} for entity placeholder):", value="What is {entity}")
-        if st.button("Start Web Search"):
-            st.markdown(
-                """
-                <h2 class="section-header">🔍 Web Search Results</h2>
-                """,
-                unsafe_allow_html=True,
-            )
-            unique_entities = data[primary_column].drop_duplicates().tolist()  # Ensure unique queries only
-            st.write(f"Debug: Unique entities - {unique_entities}") 
-            results = {}  # Dictionary to store unique query results
+    # Verify dataset and preview unique entities
+      if data is not None:
+        unique_entities = data[primary_column].drop_duplicates().tolist()
+        st.write("Debug: Unique entities", unique_entities[:10])  # Show first 10 entities for debugging
 
-            for entity in unique_entities:
-                if entity not in results:  # Avoid duplicate processing
-                    query = search_query.replace("{entity}", str(entity))
-                    try:
-                        result = search_google(query)
-                        if "organic_results" in result and len(result["organic_results"]) > 0:
-                            summary = result["organic_results"][0].get("snippet", "No result found")
-                            link = result["organic_results"][0].get("link", "")
-                            summary = f"{summary}\n\n[Read more here]({link})"
-                            if summary not in results.values():
-                               results[entity] = summary
-                            else:
-                               st.write(f"Debug: Skipping duplicate response for {entity}")
-                        else:
-                           results[entity] = "No relevant results found"
-                    except Exception as e:
-                      summary = f"Error: {e}"
-            for entity, response in results.items():
-                st.markdown(
-                   f"""
-                   <div style="border: 1px solid #ccc; padding: 10px; margin-bottom: 10px;">
-                        <strong>User:</strong> {entity}<br>
-                        <strong>AI:</strong> {response}
-                   </div>
-                   """,
-                   unsafe_allow_html=True,
-                 )
-            # Download Results as CSV
-            results_df = pd.DataFrame(list(results.items()), columns=["Entity", "Response"])
-            st.download_button(
-                label="📥 Download Results as CSV",
-                data=results_df.to_csv(index=False),
-                file_name="search_results.csv",
-                mime="text/csv",
-            )
+    # Initialize results dictionary
+      results = {}  # Dictionary to store unique query responses
+    
+    # Process the entities and perform web searches
+      for entity in unique_entities:
+          if entity not in results:  # Avoid duplicate processing
+            # Add context to the query (replace 'context_column_name' with an actual column name if needed)
+             query = f"What is {entity}"  # Optionally add context: f"What is {entity} in the context of {data['context_column_name'].iloc[0]}"
+            
+             try:
+                result = search_google(query)
+                if "organic_results" in result and len(result["organic_results"]) > 0:
+                    summary = result["organic_results"][0].get("snippet", "No result found")
+                    link = result["organic_results"][0].get("link", "")
+                    summary = f"{summary}\n\n[Read more here]({link})"
+                else:
+                    summary = "No relevant results found"
+                results[entity] = summary
+             except Exception as e:
+                results[entity] = f"Error: {e}"
+    
+    # Display results in ChatGPT-like format
+      for entity, response in results.items():
+         st.markdown(f"**User:** {entity}\n\n**AI:** {response}", unsafe_allow_html=True)
+    
+    # Add download button for results
+     results_df = pd.DataFrame(list(results.items()), columns=["Entity", "Response"])
+     st.download_button(
+        label="📥 Download Results as CSV",
+        data=results_df.to_csv(index=False),
+        file_name="search_results.csv",
+        mime="text/csv",
+    )
+
 else:
     st.warning("Please upload a CSV file to proceed.")
 # Data Visualization Section
