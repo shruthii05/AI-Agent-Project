@@ -5,7 +5,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import requests
 
-
+st.set_page_config(page_title="QueryScope AI", layout="wide")
 # Rest of your app code
 # Load OpenAI and SerpAPI keys from Streamlit secrets
 openai.api_key = st.secrets["openai"]["api_key"]
@@ -79,8 +79,6 @@ st.markdown(
     unsafe_allow_html=True,
 )
 data = None
-
-# File Uploader
 uploaded_file = st.file_uploader("Upload a CSV file for processing", type=["csv"])
 if uploaded_file:
     # Load CSV file
