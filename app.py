@@ -146,18 +146,16 @@ if data is not None:
                     except Exception as e:
                         results[entity] = f"Error: {e}"
 
-            # Display results in a styled card format
-            for entity, response in results.items():
+            for query, response in results.items():
                 st.markdown(
                     f"""
-                    <div class="card">
-                        <p><strong>Query:</strong> What is {entity}</p>
-                        <p><strong>Response:</strong> {response}</p>
+                    <div style='border-left: 4px solid #34a853; padding: 10px; margin: 10px 0; background-color: #f9f9f9;'>
+                        <p><strong>User:</strong> {query}</p>
+                        <p><strong>AI:</strong> {response}</p>
                     </div>
                     """,
                     unsafe_allow_html=True,
                 )
-
             # Download Results as CSV
             results_df = pd.DataFrame(list(results.items()), columns=["Entity", "Response"])
             st.download_button(
