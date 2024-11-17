@@ -108,8 +108,8 @@ if data is not None:
         """,
         unsafe_allow_html=True,
     )
-    primary_column = st.selectbox("Select the primary column to process:", options=data.columns)
-    process_option = st.selectbox("Choose processing type:", ["None", "Summarize Data", "Retrieve Web Data"])
+primary_column = st.selectbox("Select the primary column to process:", options=data.columns)
+process_option = st.selectbox("Choose processing type:", ["None", "Summarize Data", "Retrieve Web Data"])
 
 if process_option == "Summarize Data":
     st.markdown(f"<h3>Summary of {primary_column}:</h3>", unsafe_allow_html=True)
