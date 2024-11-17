@@ -63,7 +63,7 @@ st.markdown(
         }
     </style>
     <div class="main-header">
-        <h1>🚀 AI Agent Dashboard</h1>
+        <h1>🚀 QueryScope AI</h1>
         <p>Empowering data search and visualization with <span style="color: #FF4500;">AI</span></p>
     </div>
     <hr style="border: 1px solid #EEE; margin: 20px 0;">
