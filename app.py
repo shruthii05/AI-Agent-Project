@@ -140,6 +140,8 @@ if data is not None:
                         result = search_google(query)
                         if "organic_results" in result and len(result["organic_results"]) > 0:
                             summary = result["organic_results"][0].get("snippet", "No result found")
+                            link = result["organic_results"][0].get("link", "")
+                            summary = f"{summary}\n\n[Read more here]({link})"
                         else:
                             summary = "No relevant results found"
                         results[entity] = summary
