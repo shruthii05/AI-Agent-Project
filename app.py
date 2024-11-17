@@ -74,6 +74,9 @@ if data is not None:
 
                 results.append({"Query": query, "Response": summary})
 
+            # Convert results to a DataFrame
+            results_df = pd.DataFrame(results)
+
             # Display results in ChatGPT-style format
             for result in results:
                 st.markdown(
@@ -85,6 +88,14 @@ if data is not None:
                     """,
                     unsafe_allow_html=True,
                 )
+
+            # Add download button for results
+            st.download_button(
+                label="📥 Download Results as CSV",
+                data=results_df.to_csv(index=False),
+                file_name="web_search_results.csv",
+                mime="text/csv",
+            )
 
 # Data Visualization
     st.subheader("📊 Data Visualization")
