@@ -137,10 +137,12 @@ if data is not None:
         # Dictionary to store responses
            results = {}
 
-          for entity in unique_entities:
+           for entity in unique_entities:
               if entity not in results:  # Ensure no duplicate processing
-                query = search_query.replace("{entity}", str(entity))
-                try:
+                 if user_input and user_input != entity:
+                    continue
+                 query = search_query_template.replace("{entity}", str(entity))
+                 try:
                     result = search_google(query)
                     if "organic_results" in result and len(result["organic_results"]) > 0:
                         summary = result["organic_results"][0].get("snippet", "No result found")
@@ -149,14 +151,14 @@ if data is not None:
                     else:
                         summary = "No relevant results found"
                     results[entity] = summary
-                except Exception as e:
+                 except Exception as e:
                     results[entity] = f"Error: {e}"
 
         # Display only the response for the queried entity
-        user_input = st.text_input("Ask about an entity (e.g., 'Chile'):", value="")
-        if user_input:
-            response = results.get(user_input, "No relevant results found for the given query.")
-            st.markdown(f"**User:** {user_input}\n\n**AI:** {response}", unsafe_allow_html=True)
+           user_input = st.text_input("Ask about an entity (e.g., 'Chile'):", value="")
+          if user_input:
+             response = results.get(user_input, "No relevant results found for the given query.")
+             st.markdown(f"**User:** {user_input}\n\n**AI:** {response}", unsafe_allow_html=True)
 
         # Download Results as CSV
         results_df = pd.DataFrame(list(results.items()), columns=["Entity", "Response"])
