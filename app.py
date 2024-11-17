@@ -4,6 +4,10 @@ import gspread
 import matplotlib.pyplot as plt
 from google.oauth2 import service_account
 
+st.image("images/header_image.png", use_column_width=True)  # Display header image
+st.title("AI Agent Dashboard")  # Title of your app
+st.subheader("Simplifying Data Search and Analysis with AI")  # Subtitle for context
+
 # Load credentials from Streamlit Secrets
 credentials = service_account.Credentials.from_service_account_info(
     st.secrets["gcp_service_account"]
@@ -50,17 +54,6 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# Header Section with Image and Emojis
-st.image("images/header_image.png", use_column_width=True)
-st.title("🤖 AI Agent Dashboard 🚀")
-st.markdown(
-    """
-    <h3 style="text-align:center; color:#34495e;">✨ Simplifying Data Search and Analysis with AI ✨</h3>
-    """,
-    unsafe_allow_html=True,
-)
-
-st.markdown("---")
 
 # File Upload Section
 st.markdown("### 📂 Upload or Connect Your Data")
