@@ -5,9 +5,8 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import requests
 
-# Set page layout to wide and define page title
-st.set_page_config(page_title="QueryScope AI", layout="wide")
 
+# Rest of your app code
 # Load OpenAI and SerpAPI keys from Streamlit secrets
 openai.api_key = st.secrets["openai"]["api_key"]
 SERPAPI_KEY = st.secrets["serpapi"]["api_key"]
@@ -112,54 +111,55 @@ if data is not None:
     primary_column = st.selectbox("Select the primary column to process:", options=data.columns)
     process_option = st.selectbox("Choose processing type:", ["None", "Summarize Data", "Retrieve Web Data"])
 
-    if process_option == "Summarize Data":
-        st.markdown(f"<h3>Summary of {primary_column}:</h3>", unsafe_allow_html=True)
-        st.write(data[primary_column].describe())
-    elif process_option == "Retrieve Web Data":
-        search_query = st.text_input("Enter search query (use {entity} for entity placeholder):", value="What is {entity}")
-        if st.button("Start Web Search"):
+if process_option == "Summarize Data":
+    st.markdown(f"<h3>Summary of {primary_column}:</h3>", unsafe_allow_html=True)
+    st.write(data[primary_column].describe())
+
+elif process_option == "Retrieve Web Data":
+    search_query = st.text_input("Enter search query (use {entity} for entity placeholder):", value="What is {entity}")
+    if st.button("Start Web Search"):
+        st.markdown(
+            """
+            <h2 class="section-header">🔍 Web Search Results</h2>
+            """,
+            unsafe_allow_html=True,
+        )   
+        unique_entities = data[primary_column].drop_duplicates().tolist()  # Ensure unique queries only
+        results = {}  # Dictionary to store unique query results
+
+        for entity in unique_entities:
+            if entity not in results:  # Avoid duplicate processing
+                query = search_query.replace("{entity}", str(entity))
+                try:
+                    result = search_google(query)
+                    if "organic_results" in result and len(result["organic_results"]) > 0:
+                        summary = result["organic_results"][0].get("snippet", "No result found")
+                    else:
+                        summary = "No relevant results found"
+                    results[entity] = summary
+                except Exception as e:
+                    results[entity] = f"Error: {e}"
+
+        # Display results in a styled card format
+        for entity, response in results.items():
             st.markdown(
-                """
-                <h2 class="section-header">🔍 Web Search Results</h2>
+                f"""
+                <div class="card">
+                    <p><strong>Query:</strong> What is {entity}</p>
+                    <p><strong>Response:</strong> {response}</p>
+                </div>
                 """,
                 unsafe_allow_html=True,
             )
-            unique_entities = data[primary_column].drop_duplicates().tolist()  # Ensure unique queries only
-            results = {}
 
-            for entity in unique_entities:
-                if entity not in results:  # Avoid duplicate processing
-                    query = search_query.replace("{entity}", str(entity))
-                    try:
-                        result = search_google(query)
-                        if "organic_results" in result and len(result["organic_results"]) > 0:
-                            summary = result["organic_results"][0].get("snippet", "No result found")
-                        else:
-                            summary = "No relevant results found"
-                        results[entity] = summary
-                    except Exception as e:
-                        results[entity] = f"Error: {e}"
-
-            # Display results in a styled card format
-            for entity, response in results.items():
-                st.markdown(
-                    f"""
-                    <div class="card">
-                        <p><strong>Query:</strong> What is {entity}</p>
-                        <p><strong>Response:</strong> {response}</p>
-                    </div>
-                    """,
-                    unsafe_allow_html=True,
-                )
-
-            # Download Results as CSV
-            results_df = pd.DataFrame(list(results.items()), columns=["Entity", "Response"])
-            st.download_button(
-                label="📥 Download Results as CSV",
-                data=results_df.to_csv(index=False),
-                file_name="search_results.csv",
-                mime="text/csv",
-            )
+        # Download Results as CSV
+        results_df = pd.DataFrame(list(results.items()), columns=["Entity", "Response"])
+        st.download_button(
+            label="📥 Download Results as CSV",
+            data=results_df.to_csv(index=False),
+            file_name="search_results.csv",
+            mime="text/csv",
+        )
 
 # Data Visualization Section
     st.markdown(
