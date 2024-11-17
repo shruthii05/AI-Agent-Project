@@ -78,27 +78,29 @@ st.markdown(
     """,
     unsafe_allow_html=True,
 )
-uploaded_file = st.file_uploader(
-    "Drag and drop your CSV file here or click to browse.", type="csv"
-)
-
 data = None
+
+# File Uploader
+uploaded_file = st.file_uploader("Upload a CSV file for processing", type=["csv"])
 if uploaded_file:
     # Load CSV file
-    data = pd.read_csv(uploaded_file)
-    st.markdown(
-        """
-        <div class="success-box">✅ CSV file uploaded successfully!</div>
-        """,
-        unsafe_allow_html=True,
-    )
-    st.markdown(
-        """
-        <h3 style="color: #34a853; margin-top: 20px;">Preview of Uploaded CSV File:</h3>
-        """,
-        unsafe_allow_html=True,
-    )
-    st.dataframe(data.head(), use_container_width=True)
+    try:
+        data = pd.read_csv(uploaded_file)
+        st.markdown(
+            """
+            <div class="success-box">✅ CSV file uploaded successfully!</div>
+            """,
+            unsafe_allow_html=True,
+        )
+        st.markdown(
+            """
+            <h3 style="color: #34a853; margin-top: 20px;">Preview of Uploaded CSV File:</h3>
+            """,
+            unsafe_allow_html=True,
+        )
+        st.dataframe(data.head(), use_container_width=True)
+    except Exception as e:
+        st.error(f"Error reading the uploaded file: {e}")
 
 # Processing Options
 if data is not None:
@@ -108,58 +110,66 @@ if data is not None:
         """,
         unsafe_allow_html=True,
     )
-process_option = st.selectbox("Choose processing type:", ["None", "Summarize Data", "Retrieve Web Data"])
+    # Dropdown to choose processing type
+    process_option = st.selectbox("Choose processing type:", ["None", "Summarize Data", "Retrieve Web Data"])
 
-if process_option == "Summarize Data":
-    st.markdown(f"<h3>Summary of {primary_column}:</h3>", unsafe_allow_html=True)
-    st.write(data[primary_column].describe())
+    # Handle Summarize Data
+    if process_option == "Summarize Data":
+        # Dropdown to select the primary column for summarization
+        primary_column = st.selectbox("Select the primary column to summarize:", options=data.columns)
+        st.markdown(f"<h3>Summary of {primary_column}:</h3>", unsafe_allow_html=True)
+        st.write(data[primary_column].describe())
 
-elif process_option == "Retrieve Web Data":
-    search_query = st.text_input("Enter search query (use {entity} for entity placeholder):", value="What is {entity}")
-    if st.button("Start Web Search"):
-        st.markdown(
-            """
-            <h2 class="section-header">🔍 Web Search Results</h2>
-            """,
-            unsafe_allow_html=True,
-        )   
-        unique_entities = data[primary_column].drop_duplicates().tolist()  # Ensure unique queries only
-        results = {}  # Dictionary to store unique query results
-
-        for entity in unique_entities:
-            if entity not in results:  # Avoid duplicate processing
-                query = search_query.replace("{entity}", str(entity))
-                try:
-                    result = search_google(query)
-                    if "organic_results" in result and len(result["organic_results"]) > 0:
-                        summary = result["organic_results"][0].get("snippet", "No result found")
-                    else:
-                        summary = "No relevant results found"
-                    results[entity] = summary
-                except Exception as e:
-                    results[entity] = f"Error: {e}"
-
-        # Display results in a styled card format
-        for entity, response in results.items():
+    # Handle Retrieve Web Data
+    elif process_option == "Retrieve Web Data":
+        # Dropdown to select the primary column for web data retrieval
+        primary_column = st.selectbox("Select the primary column for web data retrieval:", options=data.columns)
+        search_query = st.text_input("Enter search query (use {entity} for entity placeholder):", value="What is {entity}")
+        if st.button("Start Web Search"):
             st.markdown(
-                f"""
-                <div class="card">
-                    <p><strong>Query:</strong> What is {entity}</p>
-                    <p><strong>Response:</strong> {response}</p>
-                </div>
+                """
+                <h2 class="section-header">🔍 Web Search Results</h2>
                 """,
                 unsafe_allow_html=True,
             )
+            unique_entities = data[primary_column].drop_duplicates().tolist()  # Ensure unique queries only
+            results = {}  # Dictionary to store unique query results
 
-        # Download Results as CSV
-        results_df = pd.DataFrame(list(results.items()), columns=["Entity", "Response"])
-        st.download_button(
-            label="📥 Download Results as CSV",
-            data=results_df.to_csv(index=False),
-            file_name="search_results.csv",
-            mime="text/csv",
-        )
+            for entity in unique_entities:
+                if entity not in results:  # Avoid duplicate processing
+                    query = search_query.replace("{entity}", str(entity))
+                    try:
+                        result = search_google(query)
+                        if "organic_results" in result and len(result["organic_results"]) > 0:
+                            summary = result["organic_results"][0].get("snippet", "No result found")
+                        else:
+                            summary = "No relevant results found"
+                        results[entity] = summary
+                    except Exception as e:
+                        results[entity] = f"Error: {e}"
 
+            # Display results in a styled card format
+            for entity, response in results.items():
+                st.markdown(
+                    f"""
+                    <div class="card">
+                        <p><strong>Query:</strong> What is {entity}</p>
+                        <p><strong>Response:</strong> {response}</p>
+                    </div>
+                    """,
+                    unsafe_allow_html=True,
+                )
+
+            # Download Results as CSV
+            results_df = pd.DataFrame(list(results.items()), columns=["Entity", "Response"])
+            st.download_button(
+                label="📥 Download Results as CSV",
+                data=results_df.to_csv(index=False),
+                file_name="search_results.csv",
+                mime="text/csv",
+            )
+else:
+    st.warning("Please upload a CSV file to proceed.")
 # Data Visualization Section
     st.markdown(
         """
