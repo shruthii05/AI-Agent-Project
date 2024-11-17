@@ -96,35 +96,48 @@ if data is not None:
         st.write(data[primary_column].describe())
     
     # Retrieve Web Data
-    elif process_option == "Retrieve Web Data":
-        search_query = st.text_input("Enter search query (use {entity} for entity placeholder)", value="What is {entity}")
-        if st.button("Start Web Search"):
-            results = []  # Initialize results list
-            for entity in data[primary_column].unique():  # Process only unique entities
-                query = search_query.replace("{entity}", str(entity))  # Replace placeholder with entity value
-                try:
-                    # Fetch results using search_google function
-                    result = search_google(query)
-                    if "organic_results" in result and len(result["organic_results"]) > 0:
-                        # Extract the first snippet from results
-                        summary = result["organic_results"][0].get("snippet", "No result found")
-                    else:
-                        summary = "No relevant results found"
-
-                    # Append to results list
-                    results.append({"Entity": entity, "Query": query, "Result": summary})
-                except Exception as e:
-                    results.append({"Entity": entity, "Query": query, "Result": f"Error: {e}"})
-            
-            # Display results in a DataFrame
+elif process_option == "Retrieve Web Data":
+    search_query = st.text_input("Enter search query (use {entity} for entity placeholder)", value="What is {entity}")
+    if st.button("Start Web Search"):
+        results = []  # Initialize results list
+        for entity in data[primary_column].unique():  # Process only unique entities
+            query = search_query.replace("{entity}", str(entity))  # Replace placeholder with entity value
+            try:
+                # Fetch results using search_google function
+                result = search_google(query)
+                
+                # Extract only the first relevant result
+                if "organic_results" in result and len(result["organic_results"]) > 0:
+                    # Extract the snippet or title of the first result
+                    summary = result["organic_results"][0].get("snippet", "No result found")
+                else:
+                    summary = "No relevant results found"
+                
+                # Append to results list
+                results.append({"Entity": entity, "Query": query, "Result": summary})
+            except Exception as e:
+                results.append({"Entity": entity, "Query": query, "Result": f"Error: {e}"})
+        
+          # Display results in a DataFrame
+         if not results_df.empty:
             st.write("Search Results:")
-            results_df = pd.DataFrame(results)
-            st.write(results_df)
-            
-            # Add download option
-            st.download_button("Download Results", results_df.to_csv(index=False), file_name="search_results.csv")
+            st.dataframe(results_df, use_container_width=True)
 
-      
+    # Add a download button for the results
+            st.download_button(
+               label="Download Results as CSV",
+               data=results_df.to_csv(index=False),
+               file_name="search_results.csv",
+               mime="text/csv",
+           )
+        
+        # Add a download button for the results
+        st.download_button(
+            label="Download Results as CSV",
+            data=results_df.to_csv(index=False),
+            file_name="search_results.csv",
+            mime="text/csv",
+        )
  
     # Visualization
     st.subheader("Data Visualization")
