@@ -151,8 +151,8 @@ if data is not None:
          st.markdown(f"**User:** {entity}\n\n**AI:** {response}", unsafe_allow_html=True)
     
     # Add download button for results
-     results_df = pd.DataFrame(list(results.items()), columns=["Entity", "Response"])
-     st.download_button(
+      results_df = pd.DataFrame(list(results.items()), columns=["Entity", "Response"])
+      st.download_button(
         label="📥 Download Results as CSV",
         data=results_df.to_csv(index=False),
         file_name="search_results.csv",
