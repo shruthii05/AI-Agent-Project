@@ -40,12 +40,12 @@ except Exception as e:
     st.stop()
 
 # App title and header
-st.markdown("""
-<div style="text-align: center;">
-    <h1 style="color: green; font-size: 3em;">AI Agent Dashboard</h1>
-    <p style="font-size: 1.2em;">Simplifying Data Search and Analysis with AI</p>
-</div>
-""", unsafe_allow_html=True)
+st.markdown(
+    """
+    <h1 style="text-align: center; color: green; font-size: 3em;">AI Agent Dashboard</h1>
+    <p style="text-align: center; font-size: 1.2em;">Simplifying Data Search and Analysis with AI</p>
+    """,
+    unsafe_allow_html=True,
 )
 
 # Sidebar Navigation
