@@ -5,6 +5,10 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import requests
 
+# Load OpenAI and SerpAPI keys from Streamlit secrets
+openai.api_key = st.secrets["openai"]["api_key"]
+SERPAPI_KEY = st.secrets["serpapi"]["api_key"]
+
 # Function to make a direct API call to SerpAPI
 def search_google(query):
     params = {
@@ -19,10 +23,6 @@ def search_google(query):
     except requests.exceptions.RequestException as e:
         return {"error": str(e)}
 
-# Load OpenAI and SerpAPI keys from Streamlit secrets
-openai.api_key = st.secrets["openai"]["api_key"]
-SERPAPI_KEY = st.secrets["serpapi"]["api_key"]
-
 # App title and header
 st.markdown(
     """
@@ -30,19 +30,6 @@ st.markdown(
         <h1 style="font-size: 2.5em; color: #2C6E91;">🚀 AI Agent Dashboard</h1>
         <p style="font-size: 1.2em; color: #555;">Simplifying Data Search and Analysis with AI</p>
     </div>
-    """,
-    unsafe_allow_html=True,
-)
-
-# Sidebar Navigation
-st.sidebar.markdown(
-    """
-    <h3>Navigation</h3>
-    <ul style="list-style-type: none; padding-left: 0;">
-        <li>📂 <b>Upload Data</b></li>
-        <li>🔍 <b>Web Search Results</b></li>
-        <li>📊 <b>Data Visualization</b></li>
-    </ul>
     """,
     unsafe_allow_html=True,
 )
@@ -57,8 +44,6 @@ if uploaded_file:
     data = pd.read_csv(uploaded_file)
     st.write("Preview of Uploaded CSV File:")
     st.write(data.head())
-else:
-    st.warning("Please upload a CSV file to proceed.")
 
 # Processing Options
 if data is not None:
@@ -72,7 +57,7 @@ if data is not None:
     elif process_option == "Retrieve Web Data":
         search_query = st.text_input("Enter search query (use {entity} for entity placeholder)", value="What is {entity}")
         if st.button("Start Web Search"):
-            results = []
+            st.subheader("🔍 Web Search Results")
             for entity in data[primary_column].unique():
                 query = search_query.replace("{entity}", str(entity))
                 try:
@@ -81,21 +66,21 @@ if data is not None:
                         summary = result["organic_results"][0].get("snippet", "No result found")
                     else:
                         summary = "No relevant results found"
-                    results.append({"Entity": entity, "Query": query, "Result": summary})
                 except Exception as e:
-                    results.append({"Entity": entity, "Query": query, "Result": f"Error: {e}"})
+                    summary = f"Error: {e}"
 
-            results_df = pd.DataFrame(results)
-            st.write("Search Results:")
-            st.dataframe(results_df, use_container_width=True)
-            st.download_button(
-                label="Download Results as CSV",
-                data=results_df.to_csv(index=False),
-                file_name="search_results.csv",
-                mime="text/csv",
-            )
+                # Display the result as a conversational-style output
+                st.markdown(
+                    f"""
+                    <div style="background-color: #f9f9f9; padding: 10px; border-radius: 8px; margin-bottom: 10px;">
+                        <p><strong>Query:</strong> {query}</p>
+                        <p><strong>Response:</strong> {summary}</p>
+                    </div>
+                    """,
+                    unsafe_allow_html=True,
+                )
 
-    # Data Visualization
+# Data Visualization
     st.subheader("📊 Data Visualization")
     chart_type = st.selectbox("Choose a chart type", ["None", "Bar Chart", "Line Chart", "Pie Chart"])
     if chart_type == "Bar Chart":
@@ -117,6 +102,5 @@ st.markdown(
     """,
     unsafe_allow_html=True,
 )
-
 
 
