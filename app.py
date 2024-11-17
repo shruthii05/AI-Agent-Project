@@ -62,17 +62,24 @@ st.sidebar.markdown(
 )
 
 # File Upload Section
-st.subheader("📂 Upload Your Data")
-uploaded_file = st.file_uploader("Upload a CSV file or connect to a Google Sheet for processing.", type="csv")
+# Google Sheets Section
+st.subheader("Connect to Google Sheets")
 sheet_url = st.text_input("Enter Google Sheets URL (must be public)")
 
+# Display debugging information about the service account and sheet URL
+st.write(f"Using service account: {st.secrets['gcp_service_account']['client_email']}")
+st.write(f"Connecting to Google Sheet: {sheet_url}")
+
+try:
+    creds = service_account.Credentials.from_service_account_info(
+        st.secrets["gcp_service_account"]
+    )
+    client = gspread.authorize(creds)
+except Exception as e:
+    st.error("Error loading Google Service Account credentials. Please check your Streamlit secrets.")
+
 data = None
-if uploaded_file:
-    # Load CSV file
-    data = pd.read_csv(uploaded_file)
-    st.write("Preview of Uploaded CSV File:")
-    st.write(data.head())
-elif sheet_url:
+if sheet_url:
     # Load data from Google Sheets
     try:
         sheet = client.open_by_url(sheet_url).sheet1
