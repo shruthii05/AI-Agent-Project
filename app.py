@@ -4,6 +4,7 @@ import streamlit as st
 import pandas as pd
 import gspread
 import matplotlib.pyplot as plt
+import requests
 from google.oauth2 import service_account
 
 # Load credentials from Streamlit Secrets
@@ -38,51 +39,40 @@ except Exception as e:
     st.error("Error loading Google Service Account credentials. Please check your Streamlit secrets.")
     st.stop()
 
-# Header Section with Styling
+# App title and header
 st.markdown(
     """
-    <style>
-        .header {
-            text-align: center;
-            padding: 20px;
-            background-color: #f3f4f6;
-            border-radius: 10px;
-            margin-bottom: 30px;
-        }
-        .header h1 {
-            color: #2d6a4f;
-            font-size: 2.5em;
-        }
-        .header h4 {
-            color: #40916c;
-            font-weight: normal;
-        }
-        .footer {
-            text-align: center;
-            margin-top: 40px;
-            color: #6c757d;
-        }
-    </style>
-    <div class="header">
-        <h1>🌟 AI Agent Dashboard</h1>
-        <h4>Simplifying Data Search and Analysis with AI</h4>
+    <div style="text-align: center; margin-top: -30px; margin-bottom: 20px;">
+        <h1 style="font-size: 2.5em; color: #2C6E91;">🚀 AI Agent Dashboard</h1>
+        <p style="font-size: 1.2em; color: #555;">Simplifying Data Search and Analysis with AI</p>
     </div>
     """,
     unsafe_allow_html=True,
 )
 
-# File Upload Section
-st.subheader("📁 Upload Your Data")
-st.markdown("Upload a CSV file or connect to a Google Sheet for processing.")
-uploaded_file = st.file_uploader("Choose a CSV file", type="csv")
+# Sidebar Navigation
+st.sidebar.markdown(
+    """
+    <h3>Navigation</h3>
+    <ul style="list-style-type: none; padding-left: 0;">
+        <li>📂 <b>Upload Data</b></li>
+        <li>🔍 <b>Web Search Results</b></li>
+        <li>📊 <b>Data Visualization</b></li>
+    </ul>
+    """,
+    unsafe_allow_html=True,
+)
 
+# File Upload Section
+st.subheader("📂 Upload Your Data")
+uploaded_file = st.file_uploader("Upload a CSV file or connect to a Google Sheet for processing.", type="csv")
 sheet_url = st.text_input("Enter Google Sheets URL (must be public)")
 
 data = None
 if uploaded_file:
     # Load CSV file
     data = pd.read_csv(uploaded_file)
-    st.write("📄 **Preview of Uploaded CSV File:**")
+    st.write("Preview of Uploaded CSV File:")
     st.write(data.head())
 elif sheet_url:
     # Load data from Google Sheets
@@ -90,20 +80,19 @@ elif sheet_url:
         sheet = client.open_by_url(sheet_url).sheet1
         records = sheet.get_all_records(expected_headers=True)
         data = pd.DataFrame(records)
-        st.write("📄 **Preview of Google Sheet Data:**")
+        st.write("Preview of Google Sheet Data:")
         st.write(data.head())
     except Exception as e:
         st.error("Error connecting to Google Sheets. Please check the URL or credentials.")
 
-# Data Processing Section
+# Processing Options
 if data is not None:
-    st.markdown("---")
     st.subheader("⚙️ Data Processing Options")
     primary_column = st.selectbox("Select the primary column to process", options=data.columns)
     process_option = st.selectbox("Choose processing type", ["None", "Summarize Data", "Retrieve Web Data"])
 
     if process_option == "Summarize Data":
-        st.write(f"📊 **Summary of {primary_column}:**")
+        st.write(f"Summary of {primary_column}:")
         st.write(data[primary_column].describe())
     elif process_option == "Retrieve Web Data":
         search_query = st.text_input("Enter search query (use {entity} for entity placeholder)", value="What is {entity}")
@@ -113,42 +102,42 @@ if data is not None:
                 query = search_query.replace("{entity}", str(entity))
                 try:
                     result = search_google(query)
-                    summary = result.get("organic_results", [{}])[0].get("snippet", "No result found")
+                    if "organic_results" in result and len(result["organic_results"]) > 0:
+                        summary = result["organic_results"][0].get("snippet", "No result found")
+                    else:
+                        summary = "No relevant results found"
                     results.append({"Entity": entity, "Query": query, "Result": summary})
                 except Exception as e:
                     results.append({"Entity": entity, "Query": query, "Result": f"Error: {e}"})
 
             results_df = pd.DataFrame(results)
-            st.write("🔍 **Search Results:**")
+            st.write("Search Results:")
             st.dataframe(results_df, use_container_width=True)
             st.download_button(
-                label="📥 Download Results as CSV",
+                label="Download Results as CSV",
                 data=results_df.to_csv(index=False),
                 file_name="search_results.csv",
                 mime="text/csv",
             )
 
-# Data Visualization Section
-if data is not None:
-    st.markdown("---")
+    # Data Visualization
     st.subheader("📊 Data Visualization")
-    visualization_column = st.selectbox("Select the column to visualize", options=data.columns)
     chart_type = st.selectbox("Choose a chart type", ["None", "Bar Chart", "Line Chart", "Pie Chart"])
-
     if chart_type == "Bar Chart":
-        st.bar_chart(data[visualization_column].value_counts())
+        st.bar_chart(data[primary_column].value_counts())
     elif chart_type == "Line Chart":
-        st.line_chart(data[visualization_column].value_counts())
+        st.line_chart(data[primary_column].value_counts())
     elif chart_type == "Pie Chart":
         fig, ax = plt.subplots()
-        data[visualization_column].value_counts().plot.pie(autopct="%1.1f%%", ax=ax)
+        data[primary_column].value_counts().plot.pie(autopct="%1.1f%%", ax=ax)
         st.pyplot(fig)
 
-# Footer Section
+# Footer
 st.markdown(
     """
-    <div class="footer">
-        Developed by <b>Shruthi</b> | Powered by <a href="https://openai.com" style="text-decoration:none;">OpenAI</a>, <a href="https://serpapi.com" style="text-decoration:none;">SerpAPI</a>, and <a href="https://cloud.google.com/" style="text-decoration:none;">Google Cloud</a> 🌐
+    <div style="text-align: center; margin-top: 50px; font-size: 0.9em; color: #888;">
+        Developed by Shruthi. Powered by <span style="color: #007bff;">OpenAI</span>, 
+        <span style="color: #FF4500;">SerpAPI</span>, and <span style="color: #34a853;">Google Cloud</span>.
     </div>
     """,
     unsafe_allow_html=True,
