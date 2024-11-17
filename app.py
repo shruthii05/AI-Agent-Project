@@ -131,6 +131,7 @@ if data is not None:
                 unsafe_allow_html=True,
             )
             unique_entities = data[primary_column].drop_duplicates().tolist()  # Ensure unique queries only
+            st.write(f"Debug: Unique entities - {unique_entities}") 
             results = {}  # Dictionary to store unique query results
 
             for entity in unique_entities:
@@ -142,22 +143,24 @@ if data is not None:
                             summary = result["organic_results"][0].get("snippet", "No result found")
                             link = result["organic_results"][0].get("link", "")
                             summary = f"{summary}\n\n[Read more here]({link})"
+                            if summary not in results.values():
+                               results[entity] = summary
                         else:
-                            summary = "No relevant results found"
-                        results[entity] = summary
-                    except Exception as e:
-                        results[entity] = f"Error: {e}"
-
-            for query, response in results.items():
+                           st.write(f"Debug: Skipping duplicate response for {entity}")
+                     else:
+                        results[entity] = "No relevant results found"
+                except Exception as e:
+                     results[entity] = f"Error: {e}"
+            for entity, response in results.items():
                 st.markdown(
-                    f"""
-                    <div style='border-left: 4px solid #34a853; padding: 10px; margin: 10px 0; background-color: #f9f9f9;'>
-                        <p><strong>User:</strong> {query}</p>
-                        <p><strong>AI:</strong> {response}</p>
-                    </div>
-                    """,
-                    unsafe_allow_html=True,
-                )
+                   f"""
+                   <div style="border: 1px solid #ccc; padding: 10px; margin-bottom: 10px;">
+                        <strong>User:</strong> {entity}<br>
+                        <strong>AI:</strong> {response}
+                   </div>
+                   """,
+                   unsafe_allow_html=True,
+                 )
             # Download Results as CSV
             results_df = pd.DataFrame(list(results.items()), columns=["Entity", "Response"])
             st.download_button(
