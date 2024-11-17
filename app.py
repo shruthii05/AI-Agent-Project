@@ -28,15 +28,18 @@ def search_google(query):
         return {"error": str(e)}
 
 # Load OpenAI and SerpAPI keys from environment variables
-openai.api_key = st.secrets["OPENAI_API_KEY"]
-SERPAPI_KEY = st.secrets["SERPAPI_KEY"]
+openai.api_key = st.secrets["openai"]["api_key"]
+SERPAPI_KEY = st.secrets["serpapi"]["api_key"]
+try:
+    creds = service_account.Credentials.from_service_account_info(
+        st.secrets["gcp_service_account"]
+    )
+    client = gspread.authorize(creds)
+except Exception as e:
+    st.error("Error loading Google Service Account credentials. Please check your Streamlit secrets.")
+    st.stop()
 
 
-# Check if the keys are loaded successfully
-if not openai.api_key:
-    st.error("OpenAI API key is missing. Please set it as an environment variable.")
-if not SERPAPI_KEY:
-    st.error("SerpAPI key is missing. Please set it as an environment variable.")
 
 # App title and instructions
 st.title("AI Agent Dashboard")
