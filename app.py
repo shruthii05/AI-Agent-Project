@@ -122,26 +122,20 @@ if data is not None:
     # Handle Retrieve Web Data
     elif process_option == "Retrieve Web Data":
     # Dropdown to select the primary column for web data retrieval
-       primary_column = st.selectbox("Select the primary column for web data retrieval:", options=data.columns)
+        st.markdown("### Web Search")
+        primary_column = st.selectbox("Select the primary column for web data retrieval:", options=data.columns)
     
     # Input field for search query template
-       search_query = st.text_input("Enter search query (use {entity} for entity placeholder):", value="What is {entity}?")
-    
+        search_query = st.text_input("Enter search query (use {entity} for entity placeholder):", value="What is {entity}?")
+        user_input = st.text_input("Ask about an entity (e.g., 'Chile'):", value="")
+   
     # Button to start the web search
-       if st.button("Start Web Search"):
-          st.markdown(
-            """
-            <h2 class="section-header">🔍 Web Search Results</h2>
-            """,
-            unsafe_allow_html=True,
-        )
-
-        # Extract unique entities from the selected column to ensure no duplicate processing
-          unique_entities = list(set(data[primary_column].drop_duplicates().tolist()))
-          st.write(f"Debug: Unique entities - {unique_entities}")  # Debugging log for unique entities
+        if st.button("Start Web Search"):
+           st.markdown(
+           unique_entities = data[primary_column].drop_duplicates().tolist()
 
         # Dictionary to store responses
-          results = {}
+           results = {}
 
           for entity in unique_entities:
               if entity not in results:  # Ensure no duplicate processing
