@@ -84,80 +84,79 @@ uploaded_file = st.file_uploader(
 )
 
 if uploaded_file:
-    # Load CSV file
+# Check if a file has been uploaded
+if uploaded_file is not None:
     try:
+        # Attempt to read the uploaded file as a CSV
         data = pd.read_csv(uploaded_file)
         st.write("Preview of Uploaded CSV File:")
         st.write(data.head())
     except Exception as e:
-        st.error(f"Error loading the uploaded CSV file: {e}")
+        # Display an error message if the file cannot be read
+        st.error(f"Error reading the file: {e}")
         data = None
 else:
+    # Set data to None if no file is uploaded
     data = None
-# Processing Options
-if data is not None:
-    st.markdown(
-        """
-        <h2 class="section-header">⚙️ Data Processing Options</h2>
-        """,
-        unsafe_allow_html=True,
-    )
-# Dropdown to select the primary column to process
-primary_column = st.selectbox("Select the primary column to process:", options=data.columns)
-
-# Dropdown to select the processing type
-process_option = st.selectbox("Choose processing type:", ["None", "Summarize Data", "Retrieve Web Data"])
-
-# Conditional for summarizing data
-if process_option == "Summarize Data":
-    st.markdown(f"<h3>Summary of {primary_column}:</h3>", unsafe_allow_html=True)
-    st.write(data[primary_column].describe())
-
-# Conditional for retrieving web data
-if process_option == "Retrieve Web Data":
-    search_query = st.text_input("Enter search query (use {entity} for entity placeholder)", value="What is {entity}")
-    if st.button("Start Web Search"):
-        st.subheader("🔍 Web Search Results")
-        unique_entities = data[primary_column].drop_duplicates().tolist()  # Ensure unique queries only
-        results = []
-
-        for entity in unique_entities:
-            query = search_query.replace("{entity}", str(entity))
-            try:
-                result = search_google(query)
-                if "organic_results" in result and len(result["organic_results"]) > 0:
-                    summary = result["organic_results"][0].get("snippet", "No result found")
-                else:
-                    summary = "No relevant results found"
-            except Exception as e:
-                summary = f"Error: {e}"
-
-            # Append only unique query-response pairs
-            if not any(res["Query"] == query for res in results):
-                results.append({"Query": query, "Response": summary})
-
-        # Display results in a ChatGPT-style format
-        for result in results:
-            st.markdown(
-                f"""
-                <div style="background-color: #f9f9f9; padding: 10px; border-radius: 8px; margin-bottom: 10px;">
-                    <strong>Query:</strong> {result["Query"]}<br>
-                    <strong>Response:</strong> {result["Response"]}
-                </div>
-                """,
-                unsafe_allow_html=True,
-            )
-
-        # Download results as a CSV
-        results_df = pd.DataFrame(results)
-        st.download_button(
-            label="Download Results as CSV",
-            data=results_df.to_csv(index=False),
-            file_name="web_search_results.csv",
-            mime="text/csv",
-        )
-else:
     st.warning("Please upload a CSV file to proceed.")
+
+# Proceed only if data is successfully loaded
+if data is not None:
+    # Dropdown to select the primary column to process
+    primary_column = st.selectbox("Select the primary column to process:", options=data.columns)
+
+    # Dropdown to select the processing type
+    process_option = st.selectbox("Choose processing type:", ["None", "Summarize Data", "Retrieve Web Data"])
+
+    # Handle "Summarize Data" option
+    if process_option == "Summarize Data":
+        st.markdown(f"<h3>Summary of {primary_column}:</h3>", unsafe_allow_html=True)
+        st.write(data[primary_column].describe())
+    
+    # Handle "Retrieve Web Data" option
+    elif process_option == "Retrieve Web Data":
+        search_query = st.text_input("Enter search query (use {entity} for entity placeholder)", value="What is {entity}?")
+        if st.button("Start Web Search"):
+            st.subheader("🔍 Web Search Results")
+            unique_entities = data[primary_column].drop_duplicates().tolist()
+            results = []
+
+            for entity in unique_entities:
+                query = search_query.replace("{entity}", str(entity))
+                try:
+                    result = search_google(query)
+                    if "organic_results" in result and len(result["organic_results"]) > 0:
+                        summary = result["organic_results"][0].get("snippet", "No result found")
+                    else:
+                        summary = "No relevant results found"
+                except Exception as e:
+                    summary = f"Error: {e}"
+
+                if not any(res["Query"] == query for res in results):
+                    results.append({"Query": query, "Response": summary})
+
+            # Display results
+            for result in results:
+                st.markdown(
+                    f"""
+                    <div style="background-color: #f9f9f9; padding: 10px; border-radius: 8px; margin-bottom: 10px;">
+                        <p><strong>Query:</strong> {result["Query"]}</p>
+                        <p><strong>Response:</strong> {result["Response"]}</p>
+                    </div>
+                    """,
+                    unsafe_allow_html=True,
+                )
+
+            # Add a download button for the results
+            results_df = pd.DataFrame(results)
+            st.download_button(
+                label="Download Results as CSV",
+                data=results_df.to_csv(index=False),
+                file_name="web_search_results.csv",
+                mime="text/csv",
+            )
+else:
+    st.warning("No data available for processing. Please upload a CSV file.")
 
 # Data Visualization Section
     st.markdown(
