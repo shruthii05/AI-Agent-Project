@@ -83,24 +83,17 @@ uploaded_file = st.file_uploader(
     "Drag and drop your CSV file here or click to browse.", type="csv"
 )
 
-data = None
 if uploaded_file:
     # Load CSV file
-    data = pd.read_csv(uploaded_file)
-    st.markdown(
-        """
-        <div class="success-box">✅ CSV file uploaded successfully!</div>
-        """,
-        unsafe_allow_html=True,
-    )
-    st.markdown(
-        """
-        <h3 style="color: #000000; margin-top: 20px;">Preview of Uploaded CSV File:</h3>
-        """,
-        unsafe_allow_html=True,
-    )
-    st.dataframe(data.head(), use_container_width=True)
-
+    try:
+        data = pd.read_csv(uploaded_file)
+        st.write("Preview of Uploaded CSV File:")
+        st.write(data.head())
+    except Exception as e:
+        st.error(f"Error loading the uploaded CSV file: {e}")
+        data = None
+else:
+    data = None
 # Processing Options
 if data is not None:
     st.markdown(
@@ -163,6 +156,8 @@ if process_option == "Retrieve Web Data":
             file_name="web_search_results.csv",
             mime="text/csv",
         )
+else:
+    st.warning("Please upload a CSV file to proceed.")
 
 # Data Visualization Section
     st.markdown(
