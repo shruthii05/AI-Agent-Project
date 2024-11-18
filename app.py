@@ -62,13 +62,15 @@ if uploaded_file:
 
 if data is not None:
     st.markdown("<h2 class='section-header'>⚙️ Data Processing Options</h2>", unsafe_allow_html=True)
-    process_option = st.selectbox("Choose processing type:", ["None", "Summarize Data", "Retrieve Web Data"])
-    
+    process_option = st.selectbox("Choose processing type:", ["None", "Summarize Data", "Retrieve Web Data", "Visualize Data"])
+
+    # Summarize Data Option
     if process_option == "Summarize Data":
         primary_column = st.selectbox("Select the primary column to summarize:", options=data.columns)
         st.markdown(f"<h3>Summary of {primary_column}:</h3>", unsafe_allow_html=True)
         st.write(data[primary_column].describe())
 
+    # Retrieve Web Data Option
     elif process_option == "Retrieve Web Data":
         primary_column = st.selectbox("Select the primary column for web data retrieval:", options=data.columns)
         search_query_template = st.text_input("Enter search query (use {entity} for entity placeholder):", value="What is {entity}?")
@@ -108,26 +110,22 @@ if data is not None:
                     mime="text/csv",
                 )
 
-else:
-    st.warning("Please upload a CSV file to proceed.")
-# Data Visualization Section
-    st.markdown(
-        """
-        <h2 class="section-header">📊 Data Visualization</h2>
-        """,
-        unsafe_allow_html=True,
-    )
-    chart_type = st.selectbox("Choose a chart type:", ["None", "Bar Chart", "Line Chart", "Pie Chart"])
-    if chart_type == "Bar Chart":
-        st.bar_chart(data[primary_column].value_counts())
-    elif chart_type == "Line Chart":
-        st.line_chart(data[primary_column].value_counts())
-    elif chart_type == "Pie Chart":
-        fig, ax = plt.subplots()
-        data[primary_column].value_counts().plot.pie(autopct="%1.1f%%", ax=ax)
-        st.pyplot(fig)
+    # Visualize Data Option
+    elif process_option == "Visualize Data":
+        st.markdown("<h2 class='section-header'>📊 Data Visualization</h2>", unsafe_allow_html=True)
+        primary_column = st.selectbox("Select the column to visualize:", options=data.columns)
+        chart_type = st.selectbox("Choose a chart type:", ["Bar Chart", "Line Chart", "Pie Chart"])
 
-# Footer with a professional look
+        if chart_type == "Bar Chart":
+            st.bar_chart(data[primary_column].value_counts())
+        elif chart_type == "Line Chart":
+            st.line_chart(data[primary_column].value_counts())
+        elif chart_type == "Pie Chart":
+            fig, ax = plt.subplots()
+            data[primary_column].value_counts().plot.pie(autopct="%1.1f%%", ax=ax)
+            st.pyplot(fig)
+
+# Footer Section
 st.markdown(
     """
     <div style="text-align: center; margin-top: 50px; font-size: 0.9em; color: #888;">
@@ -137,3 +135,4 @@ st.markdown(
     """,
     unsafe_allow_html=True,
 )
+
