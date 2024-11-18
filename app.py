@@ -5,8 +5,9 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import requests
 
+# Set page configuration
 st.set_page_config(page_title="QueryScope AI", layout="wide")
-# Rest of your app code
+
 # Load OpenAI and SerpAPI keys from Streamlit secrets
 openai.api_key = st.secrets["openai"]["api_key"]
 SERPAPI_KEY = st.secrets["serpapi"]["api_key"]
@@ -25,41 +26,16 @@ def search_google(query):
     except requests.exceptions.RequestException as e:
         return {"error": str(e)}
 
-# App title and header with refined styling
+# Header Section
 st.markdown(
     """
     <style>
-        .main-header {
-            text-align: center;
-            color: #0057D9;
-        }
-        .main-header h1 {
-            font-size: 3.5em;
-            margin-bottom: 5px;
-        }
-        .main-header p {
-            font-size: 1.2em;
-            color: #555;
-        }
-        .section-header {
-            color: #007bff;
-            margin-bottom: 20px;
-        }
-        .card {
-            background-color: #f9f9f9;
-            padding: 20px;
-            border-radius: 10px;
-            margin-bottom: 20px;
-            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-        }
-        .success-box {
-            background-color: #e6f7e6;
-            padding: 15px;
-            border-radius: 10px;
-            border: 1px solid #34a853;
-            color: #34a853;
-            font-weight: bold;
-        }
+        .main-header { text-align: center; color: #0057D9; }
+        .main-header h1 { font-size: 3.5em; margin-bottom: 5px; }
+        .main-header p { font-size: 1.2em; color: #555; }
+        .section-header { color: #007bff; margin-bottom: 20px; }
+        .card { background-color: #f9f9f9; padding: 20px; border-radius: 10px; box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); margin-bottom: 20px; }
+        .success-box { background-color: #e6f7e6; padding: 15px; border-radius: 10px; border: 1px solid #34a853; color: #34a853; font-weight: bold; }
     </style>
     <div class="main-header">
         <h1>🚀 QueryScope AI</h1>
@@ -70,79 +46,41 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# File Upload Section with success feedback
-st.markdown(
-    """
-    <h2 class="section-header">📂 Upload Your Data</h2>
-    <p>Upload a CSV file for processing. The uploaded data will be used for search and visualization.</p>
-    """,
-    unsafe_allow_html=True,
-)
-data = None
+# File Upload Section
+st.markdown("<h2 class='section-header'>📂 Upload Your Data</h2>", unsafe_allow_html=True)
 uploaded_file = st.file_uploader("Upload a CSV file for processing", type=["csv"])
+
+data = None
 if uploaded_file:
-    # Load CSV file
     try:
         data = pd.read_csv(uploaded_file)
-        st.markdown(
-            """
-            <div class="success-box">✅ CSV file uploaded successfully!</div>
-            """,
-            unsafe_allow_html=True,
-        )
-        st.markdown(
-            """
-            <h3 style="color: #34a853; margin-top: 20px;">Preview of Uploaded CSV File:</h3>
-            """,
-            unsafe_allow_html=True,
-        )
+        st.markdown("<div class='success-box'>✅ CSV file uploaded successfully!</div>", unsafe_allow_html=True)
+        st.markdown("<h3 style='color: #34a853;'>Preview of Uploaded CSV File:</h3>", unsafe_allow_html=True)
         st.dataframe(data.head(), use_container_width=True)
     except Exception as e:
         st.error(f"Error reading the uploaded file: {e}")
 
-# Processing Options
 if data is not None:
-    st.markdown(
-        """
-        <h2 class="section-header">⚙️ Data Processing Options</h2>
-        """,
-        unsafe_allow_html=True,
-    )
-    # Dropdown to choose processing type
-    primary_column = st.selectbox("Select the primary column for web data retrieval:", options=data.columns)
+    st.markdown("<h2 class='section-header'>⚙️ Data Processing Options</h2>", unsafe_allow_html=True)
     process_option = st.selectbox("Choose processing type:", ["None", "Summarize Data", "Retrieve Web Data"])
-
-    # Handle Summarize Data
+    
     if process_option == "Summarize Data":
-        # Dropdown to select the primary column for summarization
         primary_column = st.selectbox("Select the primary column to summarize:", options=data.columns)
         st.markdown(f"<h3>Summary of {primary_column}:</h3>", unsafe_allow_html=True)
         st.write(data[primary_column].describe())
 
-    # Handle Retrieve Web Data
     elif process_option == "Retrieve Web Data":
-    # Dropdown to select the primary column for web data retrieval
-        st.markdown("### Web Search")
         primary_column = st.selectbox("Select the primary column for web data retrieval:", options=data.columns)
-    
-    # Input field for search query template
-        search_query = st.text_input("Enter search query (use {entity} for entity placeholder):", value="What is {entity}?")
+        search_query_template = st.text_input("Enter search query (use {entity} for entity placeholder):", value="What is {entity}?")
         user_input = st.text_input("Ask about an entity (e.g., 'Chile'):", value="")
-   
-    # Button to start the web search
+
         if st.button("Start Web Search"):
-           st.markdown("## 🔍 Web Search Results")
-           unique_entities = data[primary_column].drop_duplicates().tolist()
+            st.markdown("## 🔍 Web Search Results")
+            results = {}
 
-        # Dictionary to store responses
-           results = {}
-
-           for entity in unique_entities:
-              if entity not in results:  # Ensure no duplicate processing
-                 if user_input and user_input != entity:
-                    continue
-                 query = search_query_template.replace("{entity}", str(entity))
-                 try:
+            if user_input:
+                query = search_query_template.replace("{entity}", user_input)
+                try:
                     result = search_google(query)
                     if "organic_results" in result and len(result["organic_results"]) > 0:
                         summary = result["organic_results"][0].get("snippet", "No result found")
@@ -150,24 +88,25 @@ if data is not None:
                         summary = f"{summary}\n\n[Read more here]({link})"
                     else:
                         summary = "No relevant results found"
-                    results[entity] = summary
-                 except Exception as e:
-                    results[entity] = f"Error: {e}"
+                    results[user_input] = summary
+                except Exception as e:
+                    results[user_input] = f"Error: {e}"
 
-        # Display only the response for the queried entity
-          user_input = st.text_input("Ask about an entity (e.g., 'Chile'):", value="")
-          if user_input:
-             response = results.get(user_input, "No relevant results found for the given query.")
-             st.markdown(f"**User:** {user_input}\n\n**AI:** {response}", unsafe_allow_html=True)
+                response = results.get(user_input, "No relevant results found for the given query.")
+                st.markdown(f"**User:** {user_input}\n\n**AI:** {response}", unsafe_allow_html=True)
 
-        # Download Results as CSV
-        results_df = pd.DataFrame(list(results.items()), columns=["Entity", "Response"])
-        st.download_button(
-            label="📥 Download Results as CSV",
-            data=results_df.to_csv(index=False),
-            file_name="search_results.csv",
-            mime="text/csv",
-        )
+            else:
+                st.warning("Please enter an entity to search.")
+
+            # Download Results as CSV
+            if results:
+                results_df = pd.DataFrame(list(results.items()), columns=["Entity", "Response"])
+                st.download_button(
+                    label="📥 Download Results as CSV",
+                    data=results_df.to_csv(index=False),
+                    file_name="search_results.csv",
+                    mime="text/csv",
+                )
 
 else:
     st.warning("Please upload a CSV file to proceed.")
